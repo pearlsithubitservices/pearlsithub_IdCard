@@ -10,7 +10,12 @@ function EmployeeProfile() {
   const [error, setError] = useState(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
-  const [dialog, setDialog] = useState({ isOpen: false, type: "info", title: "", message: "" });
+  const [dialog, setDialog] = useState({
+    isOpen: false,
+    type: "info",
+    title: "",
+    message: "",
+  });
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -45,11 +50,21 @@ function EmployeeProfile() {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        setDialog({ isOpen: true, type: "success", title: "Success", message: "Link copied to clipboard!" });
+        setDialog({
+          isOpen: true,
+          type: "success",
+          title: "Success",
+          message: "Link copied to clipboard!",
+        });
       }
     } catch (err) {
       if (err.name !== "AbortError") {
-        setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to share" });
+        setDialog({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: "Failed to share",
+        });
       }
     }
   };
@@ -67,7 +82,12 @@ function EmployeeProfile() {
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to download card" });
+      setDialog({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "Failed to download card",
+      });
     }
   };
 
@@ -80,7 +100,12 @@ function EmployeeProfile() {
         setShowQRModal(true);
       }
     } catch (err) {
-      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to load QR code" });
+      setDialog({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "Failed to load QR code",
+      });
     }
   };
 
@@ -234,10 +259,6 @@ function EmployeeProfile() {
                 {employee.monthFrom && employee.yearFrom
                   ? `${employee.monthFrom} ${employee.yearFrom}`
                   : employee.yearFrom || ""}
-                {" - "}
-                {employee.monthTo && employee.yearTo
-                  ? `${employee.monthTo} ${employee.yearTo}`
-                  : employee.yearTo || ""}
               </p>
             )}
           </div>
