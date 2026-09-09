@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/employee/:path*", "destination": "/index.html" },
+    { "source": "/admin/:path*", "destination": "/index.html" },
+    { "source": "/((?!api/|uploads/).*)", "destination": "/index.html" }
+  ]
+}
