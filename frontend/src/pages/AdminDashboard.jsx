@@ -18,14 +18,25 @@ function AdminDashboard() {
   const fetchEmployees = async () => {
     try {
       const response = await apiFetch("/api/employees");
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setError("Server returned an invalid response. It may be starting up.");
+        return;
+      }
       if (data.success) {
         setEmployees(data.data);
       } else {
         setError(data.message);
       }
     } catch (err) {
-      setError("Failed to fetch employees");
+      if (err.name === "AbortError") {
+        setError("Server is taking too long to respond. It may be waking up — try again in a moment.");
+      } else {
+        setError("Failed to fetch employees. Check your connection.");
+      }
     } finally {
       setLoading(false);
     }
@@ -82,7 +93,11 @@ function AdminDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-lg text-slate-600">Loading...</div>
+        <div className="text-center">
+          <div className="w-8 h-8 border-[3px] border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-slate-500">Loading employees...</p>
+          <p className="text-xs text-slate-400 mt-1">Backend may take a moment to wake up</p>
+        </div>
       </div>
     );
   }
@@ -114,8 +129,14 @@ function AdminDashboard() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-            {error}
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm flex items-center justify-between gap-3">
+            <span>{error}</span>
+            <button
+              onClick={() => { setError(null); setLoading(true); fetchEmployees(); }}
+              className="shrink-0 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-medium transition-colors"
+            >
+              Retry
+            </button>
           </div>
         )}
 
