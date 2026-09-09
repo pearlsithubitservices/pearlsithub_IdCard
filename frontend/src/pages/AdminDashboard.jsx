@@ -70,6 +70,15 @@ function AdminDashboard() {
     }
   };
 
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -84,9 +93,14 @@ function AdminDashboard() {
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold text-slate-800">
-              Employee ID Card System
-            </h1>
+            <div>
+              <h1 className="text-xl font-bold text-slate-800">
+                Employee ID Card System
+              </h1>
+              <p className="text-sm text-slate-500 mt-0.5">
+                {employees.length} employee{employees.length !== 1 ? "s" : ""} registered
+              </p>
+            </div>
             <Link
               to="/admin/add"
               className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
@@ -106,40 +120,51 @@ function AdminDashboard() {
         )}
 
         {employees.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-slate-500">
-              No employees found. Add your first employee!
-            </p>
+          <div className="text-center py-20">
+            <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-700 mb-1">No employees yet</h3>
+            <p className="text-sm text-slate-500 mb-5">Get started by adding your first employee.</p>
+            <Link
+              to="/admin/add"
+              className="inline-flex items-center gap-2 bg-primary-600 text-white px-5 py-2.5 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Employee
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {employees.map((employee) => (
               <div
                 key={employee._id}
-                className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow"
+                className="group bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg hover:border-slate-200 transition-all duration-200"
               >
-                {/* Employee Photo */}
-                <div className="h-32 bg-slate-100">
+                {/* Photo / Initials */}
+                <div className="relative h-36 bg-gradient-to-br from-slate-100 to-slate-50 overflow-hidden">
                   {employee.photo ? (
                     <img
                       src={resolveUrl(employee.photo)}
                       alt={employee.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300">
-                      <svg
-                        className="w-12 h-12"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                      </svg>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-3xl font-bold text-primary-400 select-none">
+                        {getInitials(employee.name)}
+                      </span>
                     </div>
                   )}
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
                 </div>
 
-                {/* Employee Info */}
+                {/* Info */}
                 <div className="p-3">
                   <h3 className="text-sm font-semibold text-slate-800 truncate">
                     {employee.name}

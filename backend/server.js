@@ -20,6 +20,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/employees', employeeRoutes);
 
+// QR code redirect — sends scanned users to the frontend employee profile
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://pearlsithub-id-card.vercel.app';
+app.get('/employee/:id', (req, res) => {
+  res.redirect(`${FRONTEND_URL}/employee/${req.params.id}`);
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
