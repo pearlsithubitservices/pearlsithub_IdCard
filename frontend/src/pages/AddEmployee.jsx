@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { apiFetch } from "../config/api";
+import MessageDialog from "../components/MessageDialog";
 
 function AddEmployee() {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ function AddEmployee() {
   });
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [dialog, setDialog] = useState({ isOpen: false, type: "info", title: "", message: "" });
 
   const handleChange = (e) => {
     setFormData({
@@ -59,7 +62,7 @@ function AddEmployee() {
         formDataToSend.append("photo", photo);
       }
 
-      const response = await fetch("/api/employees", {
+      const response = await apiFetch("/api/employees", {
         method: "POST",
         body: formDataToSend,
       });
@@ -69,10 +72,10 @@ function AddEmployee() {
       if (data.success) {
         navigate("/");
       } else {
-        alert(data.message || "Failed to add employee");
+        setDialog({ isOpen: true, type: "error", title: "Error", message: data.message || "Failed to add employee" });
       }
     } catch (err) {
-      alert("Failed to add employee");
+      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to add employee. Please try again." });
     } finally {
       setLoading(false);
     }
@@ -331,6 +334,14 @@ function AddEmployee() {
           </div>
         </form>
       </main>
+
+      <MessageDialog
+        isOpen={dialog.isOpen}
+        onClose={() => setDialog({ ...dialog, isOpen: false })}
+        type={dialog.type}
+        title={dialog.title}
+        message={dialog.message}
+      />
     </div>
   );
 }

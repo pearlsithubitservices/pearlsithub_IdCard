@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
+import { apiFetch, resolveUrl } from "../config/api";
+import MessageDialog from "../components/MessageDialog";
 
 function EmployeeProfile() {
   const { id } = useParams();
@@ -8,6 +10,7 @@ function EmployeeProfile() {
   const [error, setError] = useState(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [dialog, setDialog] = useState({ isOpen: false, type: "info", title: "", message: "" });
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -16,7 +19,7 @@ function EmployeeProfile() {
 
   const fetchEmployee = async () => {
     try {
-      const response = await fetch(`/api/employees/${id}`);
+      const response = await apiFetch(`/api/employees/${id}`);
       const data = await response.json();
       if (data.success) {
         setEmployee(data.data);
@@ -42,11 +45,11 @@ function EmployeeProfile() {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert("Link copied to clipboard!");
+        setDialog({ isOpen: true, type: "success", title: "Success", message: "Link copied to clipboard!" });
       }
     } catch (err) {
       if (err.name !== "AbortError") {
-        alert("Failed to share");
+        setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to share" });
       }
     }
   };
@@ -64,20 +67,20 @@ function EmployeeProfile() {
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      alert("Failed to download card");
+      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to download card" });
     }
   };
 
   const handleQRClick = async () => {
     try {
-      const response = await fetch(`/api/employees/${id}/qrcode`);
+      const response = await apiFetch(`/api/employees/${id}/qrcode`);
       const data = await response.json();
       if (data.success) {
         setQrCodeUrl(data.data.qrCode);
         setShowQRModal(true);
       }
     } catch (err) {
-      alert("Failed to load QR code");
+      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to load QR code" });
     }
   };
 
@@ -195,7 +198,7 @@ function EmployeeProfile() {
             <div className="w-48 h-56 rounded-xl overflow-hidden shadow-md mx-auto ring-4 ring-primary-100">
               {employee.photo ? (
                 <img
-                  src={employee.photo}
+                  src={resolveUrl(employee.photo)}
                   alt={employee.name}
                   className="w-full h-full object-cover"
                 />
@@ -407,6 +410,14 @@ function EmployeeProfile() {
           </div>
         </div>
       </div>
+
+      <MessageDialog
+        isOpen={dialog.isOpen}
+        onClose={() => setDialog({ ...dialog, isOpen: false })}
+        type={dialog.type}
+        title={dialog.title}
+        message={dialog.message}
+      />
     </div>
   );
 }

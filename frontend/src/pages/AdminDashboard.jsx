@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { apiFetch, resolveUrl } from "../config/api";
+import MessageDialog from "../components/MessageDialog";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 function AdminDashboard() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dialog, setDialog] = useState({ isOpen: false, type: "info", title: "", message: "" });
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, employeeId: null });
 
   useEffect(() => {
     fetchEmployees();
@@ -12,7 +17,7 @@ function AdminDashboard() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch("/api/employees");
+      const response = await apiFetch("/api/employees");
       const data = await response.json();
       if (data.success) {
         setEmployees(data.data);
@@ -27,26 +32,30 @@ function AdminDashboard() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      try {
-        const response = await fetch(`/api/employees/${id}`, {
-          method: "DELETE",
-        });
-        const data = await response.json();
-        if (data.success) {
-          fetchEmployees();
-        } else {
-          alert(data.message);
-        }
-      } catch (err) {
-        alert("Failed to delete employee");
+    setConfirmDialog({ isOpen: true, employeeId: id });
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmDialog.employeeId;
+    setConfirmDialog({ isOpen: false, employeeId: null });
+    try {
+      const response = await apiFetch(`/api/employees/${id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        fetchEmployees();
+      } else {
+        setDialog({ isOpen: true, type: "error", title: "Error", message: data.message || "Failed to delete employee" });
       }
+    } catch (err) {
+      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to delete employee" });
     }
   };
 
   const downloadQR = async (id, name) => {
     try {
-      const response = await fetch(`/api/employees/${id}/qrcode`);
+      const response = await apiFetch(`/api/employees/${id}/qrcode`);
       const data = await response.json();
       if (data.success) {
         const link = document.createElement("a");
@@ -57,7 +66,7 @@ function AdminDashboard() {
         document.body.removeChild(link);
       }
     } catch (err) {
-      alert("Failed to download QR code");
+      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to download QR code" });
     }
   };
 
@@ -113,7 +122,7 @@ function AdminDashboard() {
                 <div className="h-32 bg-slate-100">
                   {employee.photo ? (
                     <img
-                      src={employee.photo}
+                      src={resolveUrl(employee.photo)}
                       alt={employee.name}
                       className="w-full h-full object-cover"
                     />
@@ -176,6 +185,21 @@ function AdminDashboard() {
           </div>
         )}
       </main>
+
+      <MessageDialog
+        isOpen={dialog.isOpen}
+        onClose={() => setDialog({ ...dialog, isOpen: false })}
+        type={dialog.type}
+        title={dialog.title}
+        message={dialog.message}
+      />
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmDialog({ isOpen: false, employeeId: null })}
+        title="Delete Employee"
+        message="Are you sure you want to delete this employee? This action cannot be undone."
+      />
     </div>
   );
 }

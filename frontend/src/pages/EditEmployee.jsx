@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { apiFetch, resolveUrl } from "../config/api";
+import MessageDialog from "../components/MessageDialog";
 
 function EditEmployee() {
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ function EditEmployee() {
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [currentPhoto, setCurrentPhoto] = useState("");
+  const [dialog, setDialog] = useState({ isOpen: false, type: "info", title: "", message: "" });
 
   useEffect(() => {
     fetchEmployee();
@@ -32,7 +35,7 @@ function EditEmployee() {
 
   const fetchEmployee = async () => {
     try {
-      const response = await fetch(`/api/employees/${id}`);
+      const response = await apiFetch(`/api/employees/${id}`);
       const data = await response.json();
       if (data.success) {
         const emp = data.data;
@@ -52,13 +55,13 @@ function EditEmployee() {
           email: emp.email || "",
           phone: emp.phone || "",
         });
-        setCurrentPhoto(emp.photo || "");
+        setCurrentPhoto(resolveUrl(emp.photo || ""));
       } else {
-        alert("Employee not found");
+        setDialog({ isOpen: true, type: "error", title: "Error", message: "Employee not found" });
         navigate("/");
       }
     } catch (err) {
-      alert("Failed to fetch employee");
+      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to fetch employee" });
       navigate("/");
     } finally {
       setLoading(false);
@@ -101,7 +104,7 @@ function EditEmployee() {
         formDataToSend.append("photo", photo);
       }
 
-      const response = await fetch(`/api/employees/${id}`, {
+      const response = await apiFetch(`/api/employees/${id}`, {
         method: "PUT",
         body: formDataToSend,
       });
@@ -111,10 +114,10 @@ function EditEmployee() {
       if (data.success) {
         navigate("/");
       } else {
-        alert(data.message || "Failed to update employee");
+        setDialog({ isOpen: true, type: "error", title: "Error", message: data.message || "Failed to update employee" });
       }
     } catch (err) {
-      alert("Failed to update employee");
+      setDialog({ isOpen: true, type: "error", title: "Error", message: "Failed to update employee. Please try again." });
     } finally {
       setSaving(false);
     }
@@ -394,6 +397,14 @@ function EditEmployee() {
           </div>
         </form>
       </main>
+
+      <MessageDialog
+        isOpen={dialog.isOpen}
+        onClose={() => setDialog({ ...dialog, isOpen: false })}
+        type={dialog.type}
+        title={dialog.title}
+        message={dialog.message}
+      />
     </div>
   );
 }
